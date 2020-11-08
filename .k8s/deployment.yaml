@@ -1,0 +1,45 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: microservice-b
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: microservice-b
+  template:
+    metadata:
+      labels:
+        app: microservice-b
+    spec:
+      containers:
+        - name: microservice-b
+          image: rafaelfs81/micros-b:latest
+          ports:
+            - containerPort: 9091
+
+          volumeMounts:
+          - name: microservice-b-configmap
+            subPath: .env
+            mountPath: /go/src/micros-b/.env
+
+          env:
+            - name: RABBITMQ_DEFAULT_USER
+              valueFrom:
+                secretKeyRef:
+                  name: microservice-b-secret
+                  key: RABBITMQ_DEFAULT_USER
+
+            - name: RABBITMQ_DEFAULT_PASS
+              valueFrom:
+                secretKeyRef:
+                  name: microservice-b-secret
+                  key: RABBITMQ_DEFAULT_PASS
+
+      volumes:
+      - name: microservice-b-configmap
+        configMap:
+          name: microservice-b-configmap
+          items:
+            - key: env
+              path: .env
